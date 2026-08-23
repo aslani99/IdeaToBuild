@@ -1,0 +1,44 @@
+{
+  "app": {
+    "name": "IdeaToBuild"
+  },
+  "nav": {
+    "ideas": "Ideas",
+    "notes": "Notes",
+    "projects": "Projects",
+    "calendar": "Calendar",
+    "files": "Files",
+    "settings": "Settings"
+  },
+  "settings": {
+    "title": "Settings",
+    "theme": "Theme",
+    "language": "Language"
+  },
+  "idea": {
+    "title": "Title",
+    "description": "Description",
+    "status": {
+      "draft": "Draft",
+      "active": "Active",
+      "in_progress": "In progress",
+      "on_hold": "On hold",
+      "completed": "Completed",
+      "archived": "Archived"
+    },
+    "create": "New idea"
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "createAccount": "Create account",
+    "continueAsGuest": "Continue as guest",
+    "email": "Email",
+    "password": "Password",
+    "signOut": "Sign out",
+    "verificationSent": "Check your email to verify your account.",
+    "guestBannerMessage": "Sign in or create an account to save your data.",
+    "forgotPassword": "Forgot password?",
+    "resetPasswordEmailSent": "If that email exists, a reset link has been sent.",
+    "newPassword": "New password"
+  }
+}

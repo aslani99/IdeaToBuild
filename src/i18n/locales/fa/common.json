@@ -1,0 +1,44 @@
+{
+  "app": {
+    "name": "آیده‌تو‌بیلد"
+  },
+  "nav": {
+    "ideas": "ایده‌ها",
+    "notes": "یادداشت‌ها",
+    "projects": "پروژه‌ها",
+    "calendar": "تقویم",
+    "files": "فایل‌ها",
+    "settings": "تنظیمات"
+  },
+  "settings": {
+    "title": "تنظیمات",
+    "theme": "پوسته",
+    "language": "زبان"
+  },
+  "idea": {
+    "title": "عنوان",
+    "description": "توضیحات",
+    "status": {
+      "draft": "پیش‌نویس",
+      "active": "فعال",
+      "in_progress": "در حال انجام",
+      "on_hold": "متوقف‌شده",
+      "completed": "تکمیل‌شده",
+      "archived": "بایگانی‌شده"
+    },
+    "create": "ایده‌ی جدید"
+  },
+  "auth": {
+    "signIn": "ورود",
+    "createAccount": "ساخت حساب",
+    "continueAsGuest": "ادامه به‌عنوان مهمان",
+    "email": "ایمیل",
+    "password": "رمز عبور",
+    "signOut": "خروج",
+    "verificationSent": "برای تأیید حساب، ایمیلت رو چک کن.",
+    "guestBannerMessage": "برای ذخیره‌ی داده‌هات وارد شو یا حساب بساز.",
+    "forgotPassword": "رمز عبور رو فراموش کردی؟",
+    "resetPasswordEmailSent": "اگه این ایمیل ثبت‌شده باشه، لینک بازیابی ارسال شد.",
+    "newPassword": "رمز عبور جدید"
+  }
+}
