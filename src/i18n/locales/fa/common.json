@@ -26,7 +26,25 @@
       "completed": "تکمیل‌شده",
       "archived": "بایگانی‌شده"
     },
-    "create": "ایده‌ی جدید"
+    "create": "ایده‌ی جدید",
+    "namePlaceholder": "عنوان ایده",
+    "noIdeas": "هنوز ایده‌ای نیست.",
+    "myIdeas": "ایده‌ها",
+    "delete": "حذف"
+  },
+  "workspace": {
+    "defaultName": "فضای کاری شخصی",
+    "myWorkspaces": "فضاهای کاری من",
+    "create": "فضای کاری جدید",
+    "namePlaceholder": "اسم فضای کاری",
+    "categories": "دسته‌بندی‌ها",
+    "tags": "برچسب‌ها",
+    "createCategory": "دسته‌بندی جدید",
+    "createTag": "برچسب جدید",
+    "namePlaceholderCategory": "اسم دسته‌بندی",
+    "namePlaceholderTag": "اسم برچسب",
+    "noCategories": "هنوز دسته‌بندی‌ای نساختی.",
+    "noTags": "هنوز برچسبی نساختی."
   },
   "auth": {
     "signIn": "ورود",

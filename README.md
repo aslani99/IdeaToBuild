@@ -4,20 +4,26 @@
 
 ## وضعیت
 
-Phase 0 — بنیاد معماری و مستندسازی. این نسخه اسکلت اولیه‌ی پروژه است؛ هنوز `npm install` روی این کد اجرا نشده (باید روی سیستم خودت انجام بدی).
+Phase 2 — دامنه‌ی هسته (Workspace/Category/Tag) پیاده‌سازی شده. Phase 1 (احراز هویت) قبلاً روی یک پروژه‌ی واقعی Supabase تست شده. این نسخه هنوز روی سیستم خودت باید با `pnpm install` نصب بشه و migration جدید باید اجرا بشه (زیر را ببین).
 
 ## پیش‌نیازها
 
 - Node.js 20+
+- pnpm — https://pnpm.io/installation
 - Rust (برای Tauri) — https://www.rust-lang.org/tools/install
 - Tauri CLI prerequisites برای ویندوز: https://tauri.app/start/prerequisites/
 
 ## راه‌اندازی اولیه
 
 ```bash
-npm install
+pnpm install
 cp .env.example .env   # سپس مقادیر Supabase را پر کن
-npm run tauri dev
+```
+
+سپس محتوای `supabase/migrations/0001_phase2_core_domain.sql` را در Supabase Dashboard → SQL Editor پروژه‌ات اجرا کن (یا با Supabase CLI: `supabase db push`، اگر نصب است). بدون این مرحله، Workspace/Category/Tag کار نخواهند کرد چون جداولشان وجود ندارد.
+
+```bash
+pnpm tauri dev
 ```
 
 ## مستندات مهم

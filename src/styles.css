@@ -29,3 +29,39 @@ body {
   margin-inline: auto;
   max-inline-size: 960px;
 }
+
+/* Phase 2 — Dashboard (workspaces, categories, tags) */
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-block-start: 24px;
+}
+
+.dashboard-workspaces ul,
+.dashboard-categories ul,
+.dashboard-tags ul {
+  list-style: none;
+  padding-inline-start: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dashboard-workspaces button.active {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.dashboard-workspace-detail {
+  background: var(--color-surface);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-error {
+  color: var(--color-danger);
+}

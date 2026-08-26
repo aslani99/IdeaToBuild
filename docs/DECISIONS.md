@@ -59,3 +59,21 @@
 **تصمیم:** پنج لایه: Presentation → Application → Domain → Repository → Infrastructure
 **دلیل:** امکان استفاده‌ی مجدد از Domain/Application/Repository در وب، موبایل و دسکتاپ بدون بازنویسی.
 **پیامدها:** UI هرگز مستقیم به دیتابیس/storage/auth دسترسی ندارد؛ همه از طریق اینترفیس‌های Repository عبور می‌کند.
+
+---
+
+## AD-007 — Package Manager: pnpm
+**تاریخ:** 2026-08-25
+**مشکل:** `npm install` هر بار به‌طور کامل از اینترنت دانلود می‌کند و کند است؛ نیاز به کش محلی و نصب سریع‌تر برای توسعه‌ی مکرر.
+**تصمیم:** استفاده از pnpm به‌جای npm برای مدیریت پکیج‌ها (نصب، اسکریپت‌ها، lockfile).
+**دلیل:** کش سراسری pnpm از دانلود مجدد پکیج‌های مشترک جلوگیری می‌کند؛ نصب سریع‌تر؛ فضای دیسک کمتر با hard link.
+**پیامدها:** `package-lock.json` جایگزین `pnpm-lock.yaml` شد (باید commit شود)؛ همه‌ی دستورات مستندات (`README.md`, `setup-project.sh`, `tauri.conf.json`) به‌جای `npm` از `pnpm` استفاده می‌کنند؛ مشارکت‌کنندگان باید pnpm را جداگانه نصب کنند (`npm install -g pnpm`).
+
+---
+
+## AD-008 — Explicit Workspace Membership Table
+**تاریخ:** 2026-08-25
+**مشکل:** مدل چندنفره‌ی Workspace (docs/PRODUCT_SPEC.md) در آینده (Phase 17+) نیاز به بیش از یک عضو در هر Workspace دارد؛ تکیه‌ی صرف بر ستون `owner_id` نیاز به migration اسکیمای بزرگ در آن فاز دارد.
+**تصمیم:** از همین Phase 2 (نسخه‌ی تک‌کاربره) یک جدول جداگانه‌ی `workspace_members` با ستون `role` (`owner`/`admin`/`member`/`viewer`) ساخته شد؛ حتی صاحب یک Workspace شخصی هم یک ردیف عضویت با `role='owner'` دارد (تضمین‌شده توسط تابع `create_workspace_with_owner`).
+**دلیل:** افزودن عضو جدید در آینده فقط نیاز به `insert` یک ردیف دارد، نه تغییر اسکیما؛ همچنین RLS Policy‌ها می‌توانند از روز اول بر پایه‌ی عضویت/نقش نوشته شوند، نه `owner_id ==`، که تغییرشان در آینده هم‌ارز بازنویسی کامل Policy است.
+**پیامدها:** هر عملیات create workspace باید هم‌زمان یک ردیف `workspaces` و یک ردیف `workspace_members` بسازد — برای جلوگیری از race condition/Workspace بدون مالک، این کار در یک تابع Postgres با `security definer` (`create_workspace_with_owner`) انجام می‌شود، نه در کد کلاینت با دو `insert` جدا. تمام کوئری‌های RLS روی `workspaces`/`categories`/`tags` از طریق `exists (select 1 from workspace_members ...)` عبور می‌کنند.

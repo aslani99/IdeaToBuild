@@ -1,0 +1,1 @@
+{"default":{"identifier":"default","description":"Least-privilege capability set for the main window. Every command listed here must have a narrow, documented purpose (see docs/SECURITY.md, Section 27 of the master spec). Do not add wildcard fs/shell permissions.","local":true,"windows":["main"],"permissions":["core:default","dialog:allow-open","dialog:allow-save"]}}

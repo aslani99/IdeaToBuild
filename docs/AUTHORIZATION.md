@@ -4,13 +4,14 @@
 
 هیچ‌وقت به `userId`، `workspaceId`، یا هر شناسه‌ی منبع ارسالی از کلاینت اعتماد نمی‌شود. تفویض اختیار همیشه سمت سرور/دیتابیس تأیید می‌شود (بخش ۲۳ سند اصلی).
 
-## Row Level Security (RLS)
+## Row Level Security (RLS) — وضعیت واقعی از Phase 2 به بعد
 
-از آنجا که هنوز جدول‌های دامنه (Ideas، Projects، ...) ساخته نشده‌اند (Phase 3 به بعد)، سیاست‌های RLS واقعی هنوز نوشته نشده‌اند. این سند وقتی جدول اول (`ideas`) در Phase 3 ساخته شود، به‌روزرسانی می‌شود و باید شامل موارد زیر باشد:
+مدل تفویض اختیار بر پایه‌ی **عضویت در Workspace** است (نه فقط `owner_id`)، طبق `supabase/migrations/0001_phase2_core_domain.sql` و `0002_phase3_ideas.sql`:
 
-- `SELECT`/`UPDATE`/`DELETE` فقط برای ردیف‌هایی که `owner_id = auth.uid()` یا کاربر عضو `workspace_id` مربوطه است
-- `INSERT` فقط با `owner_id` برابر با کاربر احرازشده‌ی فعلی (نه مقدار ارسالی از کلاینت)
-- سیاست‌های جداگانه برای Guest mode: داده‌ی مهمان اصلاً به Supabase نمی‌رود تا زمان مهاجرت به حساب واقعی (AUTH-005)
+- هر جدول (`workspaces`, `categories`, `tags`, `ideas`) یک سیاست RLS دارد که با `exists (select 1 from workspace_members m where m.workspace_id = ... and m.user_id = auth.uid())` بررسی می‌کند کاربر عضو همان workspace است یا نه.
+- `workspaces` را نمی‌توان مستقیماً insert کرد — باید از طریق تابع `security definer` به نام `create_workspace_with_owner` ساخته شود، تا workspace و اولین ردیف عضویت (owner) با هم و atomic ساخته شوند (وگرنه سیاست select هیچ عضویتی برای تأیید insert جدید پیدا نمی‌کرد).
+- نقش‌ها (`owner`/`admin`/`member`/`viewer`) در `workspace_members` ذخیره می‌شوند؛ برخی عملیات (مثل حذف workspace) فقط برای `owner` مجازند.
+- Guest mode: داده‌ی مهمان اصلاً به Supabase نمی‌رود تا زمان مهاجرت به حساب واقعی (AUTH-005، هنوز پیاده نشده).
 
 ## Service-role Key
 
@@ -18,4 +19,4 @@
 
 ## وضعیت این سند
 
-Phase 1 — placeholder. سیاست‌های RLS واقعی SQL در Phase 3 (IDEA-001) نوشته و اینجا مستند می‌شوند.
+به‌روز تا Phase 3. سیاست‌های دقیق هر جدول در `docs/DATABASE.md` و فایل‌های migration مربوطه قابل مشاهده‌اند.

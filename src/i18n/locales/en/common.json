@@ -26,7 +26,25 @@
       "completed": "Completed",
       "archived": "Archived"
     },
-    "create": "New idea"
+    "create": "New idea",
+    "namePlaceholder": "Idea title",
+    "noIdeas": "No ideas yet.",
+    "myIdeas": "Ideas",
+    "delete": "Delete"
+  },
+  "workspace": {
+    "defaultName": "Personal Workspace",
+    "myWorkspaces": "My workspaces",
+    "create": "New workspace",
+    "namePlaceholder": "Workspace name",
+    "categories": "Categories",
+    "tags": "Tags",
+    "createCategory": "New category",
+    "createTag": "New tag",
+    "namePlaceholderCategory": "Category name",
+    "namePlaceholderTag": "Tag name",
+    "noCategories": "No categories yet.",
+    "noTags": "No tags yet."
   },
   "auth": {
     "signIn": "Sign in",
