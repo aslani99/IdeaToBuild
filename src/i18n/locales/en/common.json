@@ -30,7 +30,18 @@
     "namePlaceholder": "Idea title",
     "noIdeas": "No ideas yet.",
     "myIdeas": "Ideas",
-    "delete": "Delete"
+    "delete": "Delete",
+    "move": "Move",
+    "copy": "Copy",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
+  },
+  "calendar": {
+    "jumpToDate": "Go to date",
+    "today": "Today",
+    "gregorian": "Gregorian",
+    "jalali": "Jalali (Shamsi)",
+    "hijri": "Hijri (Qamari)"
   },
   "workspace": {
     "defaultName": "Personal Workspace",

@@ -48,9 +48,17 @@ Phase 0 (بنیاد) → Phase 1 (Windows Desktop) → Phase 2 (Web) → Phase 3
   - `App.tsx` هیچ‌وقت به `SignInPage`/`SignUpPage`/`GuestBanner`/`useAuth` که ساخته شده بودند وصل نشده بود → یک state machine ساده (`guest-banner` / `sign-in` / `sign-up` / `dashboard`) اضافه شد.
 - ناتمام و به‌صراحت مستندشده (هنوز پیاده‌سازی واقعی ندارند): AUTH-004 (ابطال نشست بر اساس دستگاه)، AUTH-005 (مهاجرت داده‌ی مهمان — وابسته به لایه‌ی SQLite/IndexedDB در Phase 9)، IDEA-001 (موجودیت Idea کامل — Phase 3؛ `Idea.ts`/`IIdeaRepository.ts`/`SupabaseIdeaRepository.ts` اسکلت از پیش وجود دارند و صادقانه `throw new Error("Not implemented yet")` می‌زنند — این تناقض نیست، بلکه اسکلت آگاهانه‌ی زودهنگام است)
 - گام بعدی:
-  1. کاربر باید هر دو migration را روی پروژه‌ی Supabase خودش اجرا کند، به ترتیب: `0001_phase2_core_domain.sql` سپس `0002_phase3_ideas.sql` (Dashboard → SQL Editor).
-  2. تست دستی UI (`pnpm tauri dev` → ساخت/جابه‌جایی Workspace، ساخت Category/Tag، ساخت/حذف Idea).
-  3. سپس ادامه‌ی Phase 3: محتوای غنی (rich content editor)، زیروظیفه، نقطه‌عطف، پیوست فایل، نماهای متعدد (Board/Calendar/Gantt/Graph) — همه‌ی این‌ها هنوز باقی مانده‌اند.
+  1. کاربر باید migration جدید `0003_phase3_entry_date.sql` را هم روی پروژه‌ی Supabase خودش اجرا کند (0001 و 0002 قبلاً با موفقیت اجرا و تأیید شدند — همه‌ی ۵ جدول موجودند).
+  2. تست دستی UI (`pnpm tauri dev` → ساخت/جابه‌جایی Workspace، ساخت Category/Tag، ساخت/حذف/جابه‌جایی/کپی Idea با تقویم بالای صفحه).
+  3. سپس ادامه‌ی Phase 3: محتوای غنی (rich content editor)، زیروظیفه، نقطه‌عطف، پیوست فایل، نماهای متعدد (Board/Calendar/Gantt/Graph)، و یک widget واقعی تقویم شمسی/قمری (فعلاً فقط input بومی + برچسب) — همه‌ی این‌ها هنوز باقی مانده‌اند.
+
+## این نشست چه‌کاری انجام داد (Phase 3.5 — ناوبری تاریخ‌محور، AD-009)
+
+- تأیید شد: کاربر هر دو migration قبلی (`0001`, `0002`) را روی Supabase واقعی اجرا کرد؛ هر ۵ جدول (`workspaces`, `workspace_members`, `categories`, `tags`, `ideas`) موجودند.
+- به درخواست مالک پروژه، یک قابلیت اساسی جدید طراحی و پیاده شد: کل اپ حول یک «تاریخ فعال» می‌چرخد (شمسی/میلادی/قمری قابل‌انتخاب)؛ هر Idea یک `entryDate` دارد که مستقیم قابل ویرایش نیست — فقط move (جابه‌جایی رکورد) یا copy (کپی به تاریخ دیگر). جزئیات کامل در AD-009 (`docs/DECISIONS.md`) و CAL-001 (`docs/REQUIREMENTS_TRACEABILITY.md`).
+- migration جدید: `supabase/migrations/0003_phase3_entry_date.sql` — **هنوز اجرا نشده روی Supabase واقعی**.
+- کد: `ActiveDateContext`/`useActiveDate` (state سراسری تاریخ)، `DateNavigator` (کنترل تقویم بالای اپ)، `src/i18n/calendarFormat.ts` (تبدیل نمایش با Intl، نه تبدیل واقعی داده)، به‌روزرسانی `useIdeas`/`IdeasPanel`/`IdeaService`/`SupabaseIdeaRepository`/`IIdeaRepository`.
+- ناتمام و مستندشده: widget واقعی شبکه‌ی تقویم شمسی/قمری (فعلاً input بومی + برچسب)، ذخیره‌ی دائمی ترجیح تقویم کاربر، تعمیم این الگو به Notes/Files در فازهای بعدی.
 
 ## این نشست چه‌کاری انجام داد (Phase 3 — مدیریت ایده، فیلدهای هسته)
 

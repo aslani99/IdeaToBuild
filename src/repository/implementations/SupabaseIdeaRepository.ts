@@ -4,9 +4,11 @@ import { getSupabaseClient } from "@infrastructure/api/supabaseClient";
 
 /**
  * Real implementation of IIdeaRepository against the `ideas` table
- * (see supabase/migrations/0002_phase3_ideas.sql). Covers IDEA-001 core
- * fields — rich content blocks, subtasks, milestones, file attachments, and
- * calendar links are separate follow-ups (see docs/ROADMAP.md).
+ * (see supabase/migrations/0002_phase3_ideas.sql and
+ * 0003_phase3_entry_date.sql). Covers IDEA-001 core fields plus the
+ * date-driven navigation model (CAL-001, AD-009) — rich content blocks,
+ * subtasks, milestones, and file attachments are separate follow-ups
+ * (see docs/ROADMAP.md).
  *
  * RLS scopes every row to workspace membership — this class never filters
  * by user/workspace id itself (see docs/AUTHORIZATION.md).
@@ -25,6 +27,7 @@ interface IdeaRow {
   category_id: string | null;
   tag_ids: string[];
   deadline: string | null;
+  entry_date: string;
   version: number;
   created_at: string;
   updated_at: string;
@@ -44,6 +47,7 @@ function mapRow(row: IdeaRow): Idea {
     categoryId: row.category_id,
     tagIds: row.tag_ids ?? [],
     deadline: row.deadline,
+    entryDate: row.entry_date,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     version: row.version,
@@ -75,6 +79,18 @@ export class SupabaseIdeaRepository implements IIdeaRepository {
     return (data as IdeaRow[]).map(mapRow);
   }
 
+  async listByWorkspaceAndDate(workspaceId: string, entryDate: string): Promise<Idea[]> {
+    const { data, error } = await this.client
+      .from("ideas")
+      .select("*")
+      .eq("workspace_id", workspaceId)
+      .eq("entry_date", entryDate)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return (data as IdeaRow[]).map(mapRow);
+  }
+
   async create(idea: Omit<Idea, "id" | "createdAt" | "updatedAt" | "version">): Promise<Idea> {
     const { data, error } = await this.client
       .from("ideas")
@@ -90,6 +106,7 @@ export class SupabaseIdeaRepository implements IIdeaRepository {
         category_id: idea.categoryId,
         tag_ids: idea.tagIds,
         deadline: idea.deadline,
+        entry_date: idea.entryDate,
       })
       .select("*")
       .single();
@@ -97,12 +114,9 @@ export class SupabaseIdeaRepository implements IIdeaRepository {
     return mapRow(data as IdeaRow);
   }
 
-  async update(id: string, changes: Partial<Idea>): Promise<Idea> {
-    // NOTE: optimistic-concurrency check via `version` is intentionally not
-    // enforced yet (would need an RPC comparing+incrementing atomically) —
-    // this update just increments version. Tracked as a follow-up before
-    // this is relied on for conflict detection (see docs/SYNC.md, planned
-    // Phase 10).
+  async update(id: string, changes: Partial<Omit<Idea, "entryDate">>): Promise<Idea> {
+    // NOTE: optimistic-concurrency via `version` is intentionally not
+    // enforced yet — same known gap as before (see docs/CHANGELOG.md).
     const patch: Record<string, unknown> = {};
     if (changes.title !== undefined) patch.title = changes.title;
     if (changes.description !== undefined) patch.description = changes.description;
@@ -122,5 +136,23 @@ export class SupabaseIdeaRepository implements IIdeaRepository {
   async softDelete(id: string): Promise<void> {
     const { error } = await this.client.from("ideas").update({ deleted_at: new Date().toISOString() }).eq("id", id);
     if (error) throw error;
+  }
+
+  async moveToDate(id: string, newEntryDate: string): Promise<Idea> {
+    const { data, error } = await this.client.rpc("move_idea_to_date", {
+      p_idea_id: id,
+      p_new_entry_date: newEntryDate,
+    });
+    if (error) throw error;
+    return mapRow(data as IdeaRow);
+  }
+
+  async copyToDate(id: string, newEntryDate: string): Promise<Idea> {
+    const { data, error } = await this.client.rpc("copy_idea_to_date", {
+      p_idea_id: id,
+      p_new_entry_date: newEntryDate,
+    });
+    if (error) throw error;
+    return mapRow(data as IdeaRow);
   }
 }

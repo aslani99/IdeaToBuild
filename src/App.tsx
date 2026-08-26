@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getDirection } from "@i18n/localeMetadata";
 import { useAuth } from "@application/hooks/useAuth";
+import { ActiveDateProvider } from "@application/context/ActiveDateContext";
 import { GuestBanner } from "@presentation/components/GuestBanner";
 import { SignInPage } from "@presentation/pages/SignInPage";
 import { SignUpPage } from "@presentation/pages/SignUpPage";
@@ -10,6 +11,16 @@ import { DashboardPage } from "@presentation/pages/DashboardPage";
 type Screen = "guest-banner" | "sign-in" | "sign-up" | "dashboard";
 
 export default function App() {
+  // ActiveDateProvider wraps everything (CAL-001, AD-009) so any screen —
+  // not just the dashboard — can eventually read/drive the active date.
+  return (
+    <ActiveDateProvider>
+      <AppInner />
+    </ActiveDateProvider>
+  );
+}
+
+function AppInner() {
   const { t, i18n } = useTranslation();
   const { user, continueAsGuest, signOut } = useAuth();
   const [screen, setScreen] = useState<Screen>("guest-banner");

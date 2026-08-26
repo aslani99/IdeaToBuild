@@ -4,7 +4,7 @@
  * (see master spec Section 56, RTL-001 in docs/REQUIREMENTS_TRACEABILITY.md).
  */
 export type TextDirection = "ltr" | "rtl";
-export type CalendarSystem = "gregorian" | "jalali";
+export type CalendarSystem = "gregorian" | "jalali" | "hijri";
 
 export interface LocaleMetadata {
   code: string;

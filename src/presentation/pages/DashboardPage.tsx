@@ -3,13 +3,14 @@ import { useTranslation } from "react-i18next";
 import { useWorkspace } from "@application/hooks/useWorkspace";
 import { useIdeas } from "@application/hooks/useIdeas";
 import { IdeasPanel } from "@presentation/components/IdeasPanel";
+import { DateNavigator } from "@presentation/components/DateNavigator";
 import type { Workspace } from "@domain/entities/Workspace";
 
 /**
  * Phase 2/3 entry surface: lets the authenticated user see/switch workspaces,
- * manage categories/tags, and manage Ideas within the active workspace.
- * Deliberately minimal — Notes/Projects/Calendar/Files arrive in later
- * phases (see docs/ROADMAP.md).
+ * manage categories/tags, and manage Ideas within the active workspace AND
+ * the app's currently active date (CAL-001, AD-009). Deliberately minimal —
+ * Notes/Projects/Calendar/Files arrive in later phases (see docs/ROADMAP.md).
  */
 export function DashboardPage({ ownerId }: { ownerId: string }) {
   const { t } = useTranslation();
@@ -33,6 +34,8 @@ export function DashboardPage({ ownerId }: { ownerId: string }) {
     error: ideasError,
     createIdea,
     deleteIdea,
+    moveIdea,
+    copyIdea,
   } = useIdeas(activeWorkspace?.id ?? null, ownerId);
 
   const [newWorkspaceName, setNewWorkspaceName] = useState("");
@@ -67,6 +70,7 @@ export function DashboardPage({ ownerId }: { ownerId: string }) {
 
   return (
     <section className="dashboard">
+      <DateNavigator />
       {error && <p className="form-error">{error}</p>}
       {ideasError && <p className="form-error">{ideasError}</p>}
 
@@ -147,7 +151,14 @@ export function DashboardPage({ ownerId }: { ownerId: string }) {
             </form>
           </div>
 
-          <IdeasPanel ideas={ideas} loading={ideasLoading} onCreate={createIdea} onDelete={deleteIdea} />
+          <IdeasPanel
+            ideas={ideas}
+            loading={ideasLoading}
+            onCreate={createIdea}
+            onDelete={deleteIdea}
+            onMove={moveIdea}
+            onCopy={copyIdea}
+          />
         </div>
       )}
     </section>

@@ -65,3 +65,26 @@ body {
 .form-error {
   color: var(--color-danger);
 }
+
+.date-navigator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: var(--color-surface);
+  border-radius: 8px;
+  margin-block-end: 16px;
+}
+
+.date-navigator-label {
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+.idea-date-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-inline-start: 8px;
+}

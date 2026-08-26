@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## [Unreleased] — Phase 3.5 (date-driven navigation, AD-009)
+
+### Added (2026-08-26, later)
+- `Idea.entryDate` field (plain date, no time) — the day a record belongs to in the new calendar-driven navigation model. Distinct from `createdAt`/`updatedAt`.
+- Migration `supabase/migrations/0003_phase3_entry_date.sql`: `ideas.entry_date` column + index, and two RPCs (`move_idea_to_date`, `copy_idea_to_date`) as the only sanctioned ways to change which day a record belongs to. **Not yet run against a live Supabase project.**
+- `ActiveDateContext`/`useActiveDate` — the app-wide "what day are we looking at" state, defaulting to today, wrapping the whole app in `App.tsx`.
+- `DateNavigator` component: native date picker + a calendar-system selector (Gregorian/Jalali/Hijri) that only changes the *displayed* label (`src/i18n/calendarFormat.ts`, via `Intl.DateTimeFormat` calendar extension) — the stored date and all queries stay plain Gregorian ISO.
+- `useIdeas` now fetches by `(workspaceId, activeDate)` instead of the whole workspace; new `moveIdea`/`copyIdea` actions.
+- `IdeasPanel` gained per-idea Move/Copy buttons with an inline date picker.
+- `IIdeaRepository.update()` signature now explicitly excludes `entryDate` — moving/copying is a separate, deliberate action, never a silent side effect of a general update.
+- Translation keys: `idea.move`/`idea.copy`/`idea.confirm`/`idea.cancel`, and a new `calendar.*` namespace, in en/fa.
+- `docs/DECISIONS.md` AD-009, `docs/PRODUCT_SPEC.md` CAL-001 section, `docs/DATABASE.md` entry_date/RPC docs.
+
+### Known gaps (مستندشده، نه پنهان)
+- migration 0003 هنوز اجرا نشده.
+- انتخابگر تقویم فقط از `<input type="date">` بومی (همیشه میلادی در UI) استفاده می‌کند؛ یک widget واقعی شبکه‌ی تقویم شمسی/قمری هنوز ساخته نشده — تصمیم آگاهانه‌ی MVP (AD-009).
+- ترجیح تقویم نمایشی (شمسی/میلادی/قمری) در state موقت React نگه داشته می‌شود، نه در تنظیمات دائمی کاربر.
+- این مدل فقط روی Ideas پیاده شده؛ Notes/Files (وقتی ساخته بشن) باید همین الگو رو تکرار کنن، نه یک الگوی جدا.
+
 ## [Unreleased] — Phase 3 (in progress)
 
 ### Added (2026-08-26)

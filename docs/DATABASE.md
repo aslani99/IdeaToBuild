@@ -47,6 +47,19 @@
 
 هر ردیف فقط برای عضوهای همون workspace (از طریق `workspace_members`) قابل‌مشاهده/ویرایش است — نه بر اساس فیلتر سمت کلاینت (طبق docs/AUTHORIZATION.md).
 
+## ستون و توابع Phase 3.5 (`0003_phase3_entry_date.sql`)
+
+### `ideas.entry_date`
+ستون جدید از نوع `date` (بدون زمان) — «روزی» که این رکورد به آن تعلق دارد در مدل ناوبری تاریخ‌محور (CAL-001، AD-009). همیشه میلادی خنثی ذخیره می‌شود؛ تبدیل به شمسی/قمری فقط در لایه‌ی نمایش (`src/i18n/calendarFormat.ts`) انجام می‌شود.
+
+### `move_idea_to_date(p_idea_id, p_new_entry_date)`
+تابع Postgres (`security invoker`) که `entry_date` یک رکورد موجود را مستقیماً تغییر می‌دهد — تنها راه مجاز برای این کار، نه یک `update` خام از کلاینت.
+
+### `copy_idea_to_date(p_idea_id, p_new_entry_date)`
+تابع Postgres (`security invoker`) که یک رکورد جدید با همان محتوا ولی `entry_date` جدید می‌سازد؛ اصل دست‌نخورده باقی می‌ماند.
+
+هر دو تابع `security invoker` هستند (نه `definer`) — یعنی از سیاست‌های RLS موجود روی `ideas` (`ideas_all_member`) استفاده می‌کنند، پس هیچ افزایش سطح دسترسی جدیدی معرفی نمی‌شود.
+
 ## چطور migration ها رو اجرا کنم؟
 
-داخل Supabase Dashboard پروژه‌ت، برو به SQL Editor. اول محتوای `supabase/migrations/0001_phase2_core_domain.sql` رو پیست و Run کن، بعد `0002_phase3_ideas.sql` رو (ترتیب مهمه چون دومی به جدول‌های اولی وابسته‌ست). اگر بعداً Supabase CLI نصب کردی، می‌تونی به‌جاش `supabase db push` بزنی.
+داخل Supabase Dashboard پروژه‌ت، برو به SQL Editor. به همین ترتیب اجرا کن (هر کدوم به قبلی وابسته‌ست): اول `0001_phase2_core_domain.sql`، بعد `0002_phase3_ideas.sql`، بعد `0003_phase3_entry_date.sql`. اگر بعداً Supabase CLI نصب کردی، می‌تونی به‌جاش `supabase db push` بزنی.

@@ -30,7 +30,18 @@
     "namePlaceholder": "عنوان ایده",
     "noIdeas": "هنوز ایده‌ای نیست.",
     "myIdeas": "ایده‌ها",
-    "delete": "حذف"
+    "delete": "حذف",
+    "move": "جابه‌جایی",
+    "copy": "کپی",
+    "confirm": "تأیید",
+    "cancel": "انصراف"
+  },
+  "calendar": {
+    "jumpToDate": "برو به تاریخ",
+    "today": "امروز",
+    "gregorian": "میلادی",
+    "jalali": "شمسی",
+    "hijri": "قمری"
   },
   "workspace": {
     "defaultName": "فضای کاری شخصی",

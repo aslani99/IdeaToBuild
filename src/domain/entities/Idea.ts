@@ -20,7 +20,16 @@ export interface Idea {
   priority: IdeaPriority;
   categoryId: string | null;
   tagIds: string[];
-  deadline: string | null; // ISO 8601
+  deadline: string | null; // ISO 8601 timestamp
+  /**
+   * The "entry date" — the calendar day this record belongs to, in the
+   * app's date-driven navigation model (see docs/PRODUCT_SPEC.md, CAL-001).
+   * Stored as a plain date (YYYY-MM-DD, no time/timezone component) so it
+   * means the same day regardless of calendar system used to display it.
+   * This field is NOT edited in place — see moveIdeaToDate/copyIdeaToDate
+   * in IIdeaRepository; the only direct mutation path is "move".
+   */
+  entryDate: string;
   createdAt: string; // ISO 8601
   updatedAt: string; // ISO 8601
   version: number;
@@ -30,6 +39,7 @@ export function createDraftIdea(params: {
   workspaceId: string;
   ownerId: string;
   title: string;
+  entryDate: string;
 }): Omit<Idea, "id" | "createdAt" | "updatedAt" | "version"> {
   return {
     workspaceId: params.workspaceId,
@@ -43,5 +53,6 @@ export function createDraftIdea(params: {
     categoryId: null,
     tagIds: [],
     deadline: null,
+    entryDate: params.entryDate,
   };
 }
