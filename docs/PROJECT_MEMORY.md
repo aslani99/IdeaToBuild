@@ -52,6 +52,13 @@ Phase 0 (بنیاد) → Phase 1 (Windows Desktop) → Phase 2 (Web) → Phase 3
   2. تست دستی UI (`pnpm tauri dev` → ساخت/جابه‌جایی Workspace، ساخت Category/Tag، ساخت/حذف/جابه‌جایی/کپی Idea با تقویم بالای صفحه).
   3. سپس ادامه‌ی Phase 3: محتوای غنی (rich content editor)، زیروظیفه، نقطه‌عطف، پیوست فایل، نماهای متعدد (Board/Calendar/Gantt/Graph)، و یک widget واقعی تقویم شمسی/قمری (فعلاً فقط input بومی + برچسب) — همه‌ی این‌ها هنوز باقی مانده‌اند.
 
+## این نشست چه‌کاری انجام داد (رفع باگ بحرانی — ورود بی‌اثر)
+
+- کاربر گزارش داد: بعد از ثبت‌نام/ورود موفق (تأییدشده از Supabase Dashboard — `Last signed in` به‌روز می‌شد)، برنامه همچنان صفحه‌ی ورود رو نشون می‌داد.
+- علت پیدا شد: `useAuth` یک هوک معمولی بود که هم در `App.tsx` هم در `SignInPage.tsx`/`SignUpPage.tsx` جداگانه صدا زده می‌شد — هر بار صدا زدن یک state کاملاً مستقل می‌ساخت. یعنی موفقیت ورود در نسخه‌ی `SignInPage` هرگز به نسخه‌ی `App.tsx` نمی‌رسید.
+- رفع شد: `useAuth` به یک Context مشترک (`AuthContext`/`AuthProvider`) تبدیل شد، دقیقاً مثل الگوی `ActiveDateContext`. `App.tsx` حالا کل اپ رو در `AuthProvider` می‌پیچد.
+- درس مهم برای آینده: هر hook که state مشترک بین چند کامپوننت غیر-والد/فرزند نیاز داره (auth، workspace فعال، تنظیمات) باید از روز اول Context باشد، نه یک هوک معمولی که هر بار صدا زدنش state جدا می‌سازد.
+
 ## این نشست چه‌کاری انجام داد (Phase 3.5 — ناوبری تاریخ‌محور، AD-009)
 
 - تأیید شد: کاربر هر دو migration قبلی (`0001`, `0002`) را روی Supabase واقعی اجرا کرد؛ هر ۵ جدول (`workspaces`, `workspace_members`, `categories`, `tags`, `ideas`) موجودند.

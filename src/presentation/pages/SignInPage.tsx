@@ -1,6 +1,6 @@
 import { FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "@application/hooks/useAuth";
+import { useAuth } from "@application/context/AuthContext";
 
 export function SignInPage() {
   const { t } = useTranslation();

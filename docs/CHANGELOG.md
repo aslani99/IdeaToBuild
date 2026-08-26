@@ -79,3 +79,9 @@
 - Requirements Traceability Matrix اولیه
 - اسکلت پروژه‌ی React + TypeScript + Vite + Tauri 2 با معماری پنج‌لایه
 - اسکلت i18n (en به‌عنوان کاتالوگ مرجع، fa به‌عنوان ترجمه)
+
+## [Unreleased] — Bugfix (2026-08-26, critical)
+
+### Fixed
+- **Sign-in never advanced the screen despite Supabase actually authenticating the user.** Root cause: `useAuth` was a plain React hook, called independently in `App.tsx` AND in `SignInPage.tsx`/`SignUpPage.tsx` — each call created its own isolated `useState`, so a successful `signIn()` inside `SignInPage`'s copy never reached `App.tsx`'s copy of `user`. Confirmed via Supabase dashboard: "Last signed in" timestamp updated on every attempt, proving the credentials and backend were correct all along — this was a pure frontend state-sharing bug, not a Supabase/config issue.
+  - Fix: replaced the plain hook with `AuthContext`/`AuthProvider` (`src/application/context/AuthContext.tsx`), following the same pattern already used for `ActiveDateContext`. `App.tsx` now wraps the whole tree in `AuthProvider`; `SignInPage`/`SignUpPage` import `useAuth` from the context instead of the old per-call hook. The old `src/application/hooks/useAuth.ts` file was removed.

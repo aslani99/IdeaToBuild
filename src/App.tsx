@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getDirection } from "@i18n/localeMetadata";
-import { useAuth } from "@application/hooks/useAuth";
+import { AuthProvider, useAuth } from "@application/context/AuthContext";
 import { ActiveDateProvider } from "@application/context/ActiveDateContext";
 import { GuestBanner } from "@presentation/components/GuestBanner";
 import { SignInPage } from "@presentation/pages/SignInPage";
@@ -11,12 +11,15 @@ import { DashboardPage } from "@presentation/pages/DashboardPage";
 type Screen = "guest-banner" | "sign-in" | "sign-up" | "dashboard";
 
 export default function App() {
-  // ActiveDateProvider wraps everything (CAL-001, AD-009) so any screen —
-  // not just the dashboard — can eventually read/drive the active date.
+  // AuthProvider and ActiveDateProvider wrap everything (see AuthContext.tsx
+  // bugfix note, and CAL-001/AD-009) so every screen shares the SAME auth
+  // and active-date state — not a separate copy per component.
   return (
-    <ActiveDateProvider>
-      <AppInner />
-    </ActiveDateProvider>
+    <AuthProvider>
+      <ActiveDateProvider>
+        <AppInner />
+      </ActiveDateProvider>
+    </AuthProvider>
   );
 }
 
