@@ -85,3 +85,24 @@
 ### Fixed
 - **Sign-in never advanced the screen despite Supabase actually authenticating the user.** Root cause: `useAuth` was a plain React hook, called independently in `App.tsx` AND in `SignInPage.tsx`/`SignUpPage.tsx` — each call created its own isolated `useState`, so a successful `signIn()` inside `SignInPage`'s copy never reached `App.tsx`'s copy of `user`. Confirmed via Supabase dashboard: "Last signed in" timestamp updated on every attempt, proving the credentials and backend were correct all along — this was a pure frontend state-sharing bug, not a Supabase/config issue.
   - Fix: replaced the plain hook with `AuthContext`/`AuthProvider` (`src/application/context/AuthContext.tsx`), following the same pattern already used for `ActiveDateContext`. `App.tsx` now wraps the whole tree in `AuthProvider`; `SignInPage`/`SignUpPage` import `useAuth` from the context instead of the old per-call hook. The old `src/application/hooks/useAuth.ts` file was removed.
+
+## [Unreleased] — Guest UX fix + Local-First Storage (2026-08-26, later)
+
+### Fixed
+- Guest mode was effectively unusable: `App.tsx` only showed guests a static message instead of the dashboard, contradicting master spec Section 22 ("guest is never forced to log in, only prompted when saving"). Fixed: guests now see the full `DashboardPage`; every create/save action calls `requireAuth()` first, which opens `AuthRequiredModal` instead of proceeding.
+- Added session persistence: `AuthContext` now calls `restoreSession()` on app startup, so a previously-signed-in user is NOT asked to log in again on every launch.
+
+### Added — Local-first encrypted storage + background sync (AD-010)
+- `src-tauri/src/local_store.rs`: encrypted local SQLite store for Ideas — AES-256-GCM field-level encryption, key held in the OS credential manager via `keyring` (not SQLCipher/OpenSSL, to keep the Windows build simple — see AD-010).
+- New Tauri commands: `local_idea_upsert`, `local_idea_get`, `local_idea_list`, `local_idea_pending`, `local_idea_mark_synced`.
+- `LocalFirstIdeaRepository` (new `IIdeaRepository` implementation) — `useIdeas` now uses this instead of `SupabaseIdeaRepository` directly.
+- `IIdeaSyncTarget` domain interface + `SupabaseIdeaRepository.pushSnapshot()` — the sync path's write target.
+- `SyncEngine` (application layer): pushes the local pending-changes queue to Supabase on `online` events + a periodic interval, with a short debounce.
+- `AuthContext`/`AuthRequiredModal`: `useAuth` converted from a plain hook (buggy — see the earlier fix this session) into a shared Context that also owns `requireAuth()`/the auth modal state.
+- `GuestBanner.tsx` removed — superseded by `AuthRequiredModal`.
+
+### Known gaps (مستندشده، نه پنهان)
+- این Rust code در این نشست کامپایل/تست نشده (بدون دسترسی به کامپایلر) — اولین `pnpm tauri dev` بعد از این تغییر ممکنه خطای build بده که باید با هم رفعش کنیم.
+- فقط Idea به مدل local-first منتقل شده؛ Workspace/Category/Tag هنوز مستقیم Supabase-only هستن.
+- SyncEngine بدون retry/backoff پیشرفته — رکورد fail‌شده تا trigger بعدی صبر می‌کنه.
+- امنیت رمزنگاری محلی محدودیت مستندشده داره (AD-010) — محافظت در برابر باز کردن فایل، نه در برابر یک session سیستم‌عامل کاملاً compromised.

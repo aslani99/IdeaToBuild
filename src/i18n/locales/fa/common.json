@@ -55,7 +55,8 @@
     "namePlaceholderCategory": "اسم دسته‌بندی",
     "namePlaceholderTag": "اسم برچسب",
     "noCategories": "هنوز دسته‌بندی‌ای نساختی.",
-    "noTags": "هنوز برچسبی نساختی."
+    "noTags": "هنوز برچسبی نساختی.",
+    "guestPreviewHint": "داری به‌عنوان مهمان مرور می‌کنی. برای ذخیره‌ی هر چیزی، وارد شو یا حساب بساز."
   },
   "auth": {
     "signIn": "ورود",

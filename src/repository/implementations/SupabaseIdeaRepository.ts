@@ -1,4 +1,5 @@
 import type { IIdeaRepository } from "@domain/repositories/IIdeaRepository";
+import type { IIdeaSyncTarget } from "@domain/repositories/IIdeaSyncTarget";
 import type { Idea, IdeaStatus, IdeaPriority } from "@domain/entities/Idea";
 import { getSupabaseClient } from "@infrastructure/api/supabaseClient";
 
@@ -54,8 +55,37 @@ function mapRow(row: IdeaRow): Idea {
   };
 }
 
-export class SupabaseIdeaRepository implements IIdeaRepository {
+export class SupabaseIdeaRepository implements IIdeaRepository, IIdeaSyncTarget {
   private client = getSupabaseClient();
+
+  /**
+   * The SyncEngine's push path (AD-010) — upserts the COMPLETE row exactly
+   * as it exists locally, including entryDate. Unlike the RPC-based
+   * moveToDate/copyToDate used by the direct-online path, this always wins
+   * (local device is the source of truth in the local-first model).
+   */
+  async pushSnapshot(idea: Idea, deleted: boolean): Promise<void> {
+    const { error } = await this.client.from("ideas").upsert(
+      {
+        id: idea.id,
+        workspace_id: idea.workspaceId,
+        owner_id: idea.ownerId,
+        title: idea.title,
+        description: idea.description,
+        icon: idea.icon,
+        cover_image_url: idea.coverImageUrl,
+        status: idea.status,
+        priority: idea.priority,
+        category_id: idea.categoryId,
+        tag_ids: idea.tagIds,
+        deadline: idea.deadline,
+        entry_date: idea.entryDate,
+        deleted_at: deleted ? new Date().toISOString() : null,
+      },
+      { onConflict: "id" }
+    );
+    if (error) throw error;
+  }
 
   async getById(id: string): Promise<Idea | null> {
     const { data, error } = await this.client

@@ -24,6 +24,14 @@ export interface IAuthRepository {
 
   getCurrentSession(): Promise<AppSession | null>;
 
+  /**
+   * Restores the full AppUser (not just token/session data) from an
+   * existing Supabase session, if one exists — used on app startup so a
+   * previously-authenticated user is NOT asked to sign in again
+   * (AUTH-003, session persistence).
+   */
+  restoreSession(): Promise<AppUser | null>;
+
   /** Revokes a specific session/device (see docs/SECURITY.md — session/device management). */
   revokeSession(sessionId: string): Promise<void>;
 

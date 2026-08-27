@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "@application/context/AuthContext";
 import { useWorkspace } from "@application/hooks/useWorkspace";
 import { useIdeas } from "@application/hooks/useIdeas";
 import { IdeasPanel } from "@presentation/components/IdeasPanel";
@@ -7,13 +8,19 @@ import { DateNavigator } from "@presentation/components/DateNavigator";
 import type { Workspace } from "@domain/entities/Workspace";
 
 /**
- * Phase 2/3 entry surface: lets the authenticated user see/switch workspaces,
- * manage categories/tags, and manage Ideas within the active workspace AND
- * the app's currently active date (CAL-001, AD-009). Deliberately minimal —
- * Notes/Projects/Calendar/Files arrive in later phases (see docs/ROADMAP.md).
+ * Phase 2/3 entry surface. Guests can browse this whole page freely (master
+ * spec Section 22) — but since Workspaces/Categories/Tags/Ideas are all
+ * backed by Supabase + RLS keyed on `auth.uid()`, a guest has no real data
+ * yet. Every create/save action calls `requireAuth()` first; for a guest
+ * that opens AuthRequiredModal (App.tsx) and stops there instead of hitting
+ * Supabase with no session. Deliberately minimal — Notes/Projects/Calendar/
+ * Files arrive in later phases (see docs/ROADMAP.md).
  */
 export function DashboardPage({ ownerId }: { ownerId: string }) {
   const { t } = useTranslation();
+  const { user, requireAuth } = useAuth();
+  const isAuthenticated = user?.mode === "authenticated";
+
   const {
     workspaces,
     activeWorkspace,
@@ -42,13 +49,18 @@ export function DashboardPage({ ownerId }: { ownerId: string }) {
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newTagName, setNewTagName] = useState("");
 
+  // Only fetch real Workspace data once actually authenticated — for a
+  // guest there is nothing to fetch yet (no Supabase session/auth.uid()).
   useEffect(() => {
-    initWorkspaces(t("workspace.defaultName"));
+    if (isAuthenticated) {
+      initWorkspaces(t("workspace.defaultName"));
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isAuthenticated]);
 
   const handleCreateWorkspace = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!requireAuth()) return;
     if (!newWorkspaceName.trim()) return;
     await createWorkspace(newWorkspaceName.trim());
     setNewWorkspaceName("");
@@ -56,6 +68,7 @@ export function DashboardPage({ ownerId }: { ownerId: string }) {
 
   const handleCreateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!requireAuth()) return;
     if (!newCategoryName.trim()) return;
     await createCategory(newCategoryName.trim());
     setNewCategoryName("");
@@ -63,9 +76,29 @@ export function DashboardPage({ ownerId }: { ownerId: string }) {
 
   const handleCreateTag = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!requireAuth()) return;
     if (!newTagName.trim()) return;
     await createTag(newTagName.trim());
     setNewTagName("");
+  };
+
+  // Ideas panel handlers also gate on requireAuth() before calling into the
+  // real Supabase-backed use-cases (see useIdeas/IdeaService).
+  const guardedCreateIdea = async (title: string) => {
+    if (!requireAuth()) return undefined;
+    return createIdea(title);
+  };
+  const guardedDeleteIdea = async (id: string) => {
+    if (!requireAuth()) return undefined;
+    return deleteIdea(id);
+  };
+  const guardedMoveIdea = async (id: string, newEntryDate: string) => {
+    if (!requireAuth()) return undefined;
+    return moveIdea(id, newEntryDate);
+  };
+  const guardedCopyIdea = async (id: string, newEntryDate: string) => {
+    if (!requireAuth()) return undefined;
+    return copyIdea(id, newEntryDate);
   };
 
   return (
@@ -74,21 +107,25 @@ export function DashboardPage({ ownerId }: { ownerId: string }) {
       {error && <p className="form-error">{error}</p>}
       {ideasError && <p className="form-error">{ideasError}</p>}
 
+      {!isAuthenticated && <p className="guest-hint">{t("workspace.guestPreviewHint")}</p>}
+
       <div className="dashboard-workspaces">
         <h2>{t("workspace.myWorkspaces")}</h2>
-        <ul>
-          {workspaces.map((ws: Workspace) => (
-            <li key={ws.id}>
-              <button
-                onClick={() => selectWorkspace(ws)}
-                aria-pressed={activeWorkspace?.id === ws.id}
-                className={activeWorkspace?.id === ws.id ? "active" : undefined}
-              >
-                {ws.name}
-              </button>
-            </li>
-          ))}
-        </ul>
+        {isAuthenticated && (
+          <ul>
+            {workspaces.map((ws: Workspace) => (
+              <li key={ws.id}>
+                <button
+                  onClick={() => selectWorkspace(ws)}
+                  aria-pressed={activeWorkspace?.id === ws.id}
+                  className={activeWorkspace?.id === ws.id ? "active" : undefined}
+                >
+                  {ws.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
         <form onSubmit={handleCreateWorkspace}>
           <input
             value={newWorkspaceName}
@@ -101,7 +138,7 @@ export function DashboardPage({ ownerId }: { ownerId: string }) {
         </form>
       </div>
 
-      {activeWorkspace && (
+      {isAuthenticated && activeWorkspace && (
         <div className="dashboard-workspace-detail">
           <h3>{activeWorkspace.name}</h3>
 
@@ -154,12 +191,16 @@ export function DashboardPage({ ownerId }: { ownerId: string }) {
           <IdeasPanel
             ideas={ideas}
             loading={ideasLoading}
-            onCreate={createIdea}
-            onDelete={deleteIdea}
-            onMove={moveIdea}
-            onCopy={copyIdea}
+            onCreate={guardedCreateIdea}
+            onDelete={guardedDeleteIdea}
+            onMove={guardedMoveIdea}
+            onCopy={guardedCopyIdea}
           />
         </div>
+      )}
+
+      {!isAuthenticated && (
+        <IdeasPanel ideas={[]} loading={false} onCreate={guardedCreateIdea} onDelete={guardedDeleteIdea} onMove={guardedMoveIdea} onCopy={guardedCopyIdea} />
       )}
     </section>
   );

@@ -6,7 +6,9 @@
 |---|---|---|---|---|---|---|
 | AD-001..006 | تصمیمات معماری پایه | بالا | ثبت‌شده | docs/DECISIONS.md | — | بله (سندی) |
 | SEC-001 | بدون AI درون محصول تولیدی | بحرانی | فعال | — (قانون معماری) | code review | در حال پایش |
-| AUTH-001 | Guest mode بدون اجبار ورود | بالا | اسکلت پیاده‌سازی شد | src/repository/implementations/SupabaseAuthRepository.ts, src/infrastructure/db/guestStore.ts | — | خیر (تست نشده) |
+| AUTH-001 | Guest mode بدون اجبار ورود؛ ذخیره‌سازی فقط با requireAuth() گیت می‌شود | بالا | پیاده‌سازی شد: مهمان کل داشبورد رو می‌بینه، `requireAuth()` قبل از هر create/save کادر ورود رو باز می‌کنه | src/application/context/AuthContext.tsx, src/presentation/components/AuthRequiredModal.tsx, src/presentation/pages/DashboardPage.tsx | — | خیر (تست دستی لازم) |
+| AUTH-003b | Session persistence — کاربر بعد از ثبت‌نام نیازی به ورود دوباره ندارد | بالا | پیاده‌سازی شد: `restoreSession()` روی mount چک می‌کنه | src/application/context/AuthContext.tsx, src/repository/implementations/SupabaseAuthRepository.ts | — | خیر (تست دستی لازم) |
+| SYNC-001 | ذخیره‌سازی محلی رمزنگاری‌شده + همگام‌سازی خودکار پس‌زمینه (فعلاً فقط Idea) | بحرانی | پیاده‌سازی شد (AD-010) — منتظر build/تست واقعی Rust | src-tauri/src/local_store.rs, src/repository/implementations/LocalFirstIdeaRepository.ts, src/application/services/SyncEngine.ts | — | خیر (نیاز به build واقعی و تست دستی؛ کد Rust در این نشست کامپایل نشده) |
 | AUTH-002 | ایمیل/رمز عبور + تأیید ایمیل + بازیابی | بالا | اسکلت پیاده‌سازی شد | src/repository/implementations/SupabaseAuthRepository.ts, src/presentation/pages/SignInPage.tsx, SignUpPage.tsx | — | خیر (نیاز به پروژه‌ی واقعی Supabase برای تست) |
 | AUTH-003 | مدیریت نشست | بالا | اسکلت پیاده‌سازی شد | SupabaseAuthRepository.getCurrentSession | — | خیر |
 | AUTH-004 | ابطال نشست بر اساس دستگاه | متوسط | برنامه‌ریزی‌شده (نیاز به جدول user_sessions + Edge Function) | — | — | خیر |

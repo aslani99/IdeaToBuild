@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { IdeaService } from "@application/services/IdeaService";
-import { SupabaseIdeaRepository } from "@repository/implementations/SupabaseIdeaRepository";
+import { LocalFirstIdeaRepository } from "@repository/implementations/LocalFirstIdeaRepository";
 import { useActiveDate } from "@application/context/ActiveDateContext";
 import type { Idea } from "@domain/entities/Idea";
 
@@ -8,9 +8,14 @@ import type { Idea } from "@domain/entities/Idea";
  * Thin React adapter over IdeaService (mirrors useAuth/useWorkspace — see
  * docs/ARCHITECTURE.md). Scoped to a single workspace AND the app's global
  * active date (CAL-001, AD-009) — re-fetches whenever either changes.
+ *
+ * Uses LocalFirstIdeaRepository (AD-010): reads/writes always hit the
+ * encrypted local store first, never wait on Supabase. A SyncEngine
+ * (started once in App.tsx for authenticated users) pushes local changes
+ * to the cloud in the background.
  */
 export function useIdeas(workspaceId: string | null, ownerId: string | null) {
-  const ideaService = useMemo(() => new IdeaService(new SupabaseIdeaRepository()), []);
+  const ideaService = useMemo(() => new IdeaService(new LocalFirstIdeaRepository()), []);
   const { activeDate } = useActiveDate();
 
   const [ideas, setIdeas] = useState<Idea[]>([]);

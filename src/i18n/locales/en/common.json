@@ -55,7 +55,8 @@
     "namePlaceholderCategory": "Category name",
     "namePlaceholderTag": "Tag name",
     "noCategories": "No categories yet.",
-    "noTags": "No tags yet."
+    "noTags": "No tags yet.",
+    "guestPreviewHint": "You're browsing as a guest. Sign in or create an account to save anything."
   },
   "auth": {
     "signIn": "Sign in",

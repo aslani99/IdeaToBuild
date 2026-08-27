@@ -36,6 +36,11 @@ export class AuthService {
     return this.authRepository.getCurrentSession();
   }
 
+  /** See IAuthRepository.restoreSession — used on app startup for session persistence. */
+  restoreSession(): Promise<AppUser | null> {
+    return this.authRepository.restoreSession();
+  }
+
   /**
    * Call after a guest successfully signs up/in, so their local data follows
    * them into the new account (master spec Section 22).

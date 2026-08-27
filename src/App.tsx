@@ -1,19 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { getDirection } from "@i18n/localeMetadata";
 import { AuthProvider, useAuth } from "@application/context/AuthContext";
 import { ActiveDateProvider } from "@application/context/ActiveDateContext";
-import { GuestBanner } from "@presentation/components/GuestBanner";
-import { SignInPage } from "@presentation/pages/SignInPage";
-import { SignUpPage } from "@presentation/pages/SignUpPage";
+import { SyncEngine } from "@application/services/SyncEngine";
+import { SupabaseIdeaRepository } from "@repository/implementations/SupabaseIdeaRepository";
+import { AuthRequiredModal } from "@presentation/components/AuthRequiredModal";
 import { DashboardPage } from "@presentation/pages/DashboardPage";
 
-type Screen = "guest-banner" | "sign-in" | "sign-up" | "dashboard";
-
 export default function App() {
-  // AuthProvider and ActiveDateProvider wrap everything (see AuthContext.tsx
-  // bugfix note, and CAL-001/AD-009) so every screen shares the SAME auth
-  // and active-date state — not a separate copy per component.
+  // AuthProvider and ActiveDateProvider wrap everything so every screen
+  // shares the SAME auth and active-date state — not a separate copy per
+  // component (see AuthContext.tsx bugfix note, and CAL-001/AD-009).
   return (
     <AuthProvider>
       <ActiveDateProvider>
@@ -25,69 +23,60 @@ export default function App() {
 
 function AppInner() {
   const { t, i18n } = useTranslation();
-  const { user, continueAsGuest, signOut } = useAuth();
-  const [screen, setScreen] = useState<Screen>("guest-banner");
+  const { user, initializing, signOut } = useAuth();
+  const syncEngineRef = useRef<SyncEngine | null>(null);
 
   useEffect(() => {
     document.documentElement.dir = getDirection(i18n.language);
     document.documentElement.lang = i18n.language;
   }, [i18n.language]);
 
-  // Restore a guest identity on load so a returning guest lands on the
-  // dashboard instead of the banner every time (see AUTH-001).
+  // SyncEngine only makes sense for an authenticated user (guests can't
+  // write anything in the first place — see requireAuth() in
+  // DashboardPage). Start it once on sign-in, stop it on sign-out.
   useEffect(() => {
-    continueAsGuest().then(() => setScreen("dashboard"));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (user?.mode === "authenticated" && !syncEngineRef.current) {
+      const engine = new SyncEngine(new SupabaseIdeaRepository());
+      engine.start();
+      syncEngineRef.current = engine;
+    }
+    if (user?.mode !== "authenticated" && syncEngineRef.current) {
+      syncEngineRef.current.stop();
+      syncEngineRef.current = null;
+    }
+    return () => {
+      syncEngineRef.current?.stop();
+      syncEngineRef.current = null;
+    };
+  }, [user?.mode]);
 
-  if (user?.mode === "authenticated" || (user?.mode === "guest" && screen === "dashboard")) {
+  // Avoid a flash of empty UI while the session-restore check runs (see
+  // AuthContext.tsx — AUTH-003 session persistence).
+  if (initializing || !user) {
     return (
       <main className="container">
         <h1>{t("app.name")}</h1>
-        {user.mode === "guest" && (
-          <GuestBanner onSignIn={() => setScreen("sign-in")} onCreateAccount={() => setScreen("sign-up")} />
-        )}
-        {user.mode === "authenticated" && (
-          <p>
-            {user.email} — <button onClick={() => signOut().then(() => setScreen("guest-banner"))}>{t("auth.signOut")}</button>
-          </p>
-        )}
-        {/* Workspaces are backed by Supabase + RLS keyed on auth.uid(), so
-            they only make sense for an authenticated user (see AUTH-005 —
-            guest data has no server-side identity until sign-up/migration,
-            planned for Phase 9). Guests still see the banner above but not
-            the workspace dashboard yet. */}
-        {user.mode === "authenticated" ? (
-          <DashboardPage ownerId={user.id} />
-        ) : (
-          <p>{t("auth.guestBannerMessage")}</p>
-        )}
       </main>
-    );
-  }
-
-  if (screen === "sign-in") {
-    return (
-      <div className="container">
-        <SignInPage />
-        <button onClick={() => setScreen("sign-up")}>{t("auth.createAccount")}</button>
-      </div>
-    );
-  }
-
-  if (screen === "sign-up") {
-    return (
-      <div className="container">
-        <SignUpPage />
-        <button onClick={() => setScreen("sign-in")}>{t("auth.signIn")}</button>
-      </div>
     );
   }
 
   return (
     <main className="container">
       <h1>{t("app.name")}</h1>
-      <p>{t("auth.guestBannerMessage")}</p>
+      {user.mode === "authenticated" && (
+        <p>
+          {user.email} — <button onClick={() => signOut()}>{t("auth.signOut")}</button>
+        </p>
+      )}
+      {/*
+        Guests can see and use the whole dashboard (master spec Section 22
+        — never force login just to browse). DashboardPage/IdeasPanel call
+        `requireAuth()` from AuthContext the instant a guest tries to
+        create/save something, which opens AuthRequiredModal below instead
+        of silently failing or blocking the whole screen.
+      */}
+      <DashboardPage ownerId={user.id} />
+      <AuthRequiredModal />
     </main>
   );
 }

@@ -88,3 +88,38 @@ body {
   gap: 8px;
   margin-inline-start: 8px;
 }
+
+.guest-hint {
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  position: relative;
+  background: var(--color-background);
+  border-radius: 8px;
+  padding: 24px;
+  max-inline-size: 420px;
+  width: 90%;
+}
+
+.modal-close {
+  position: absolute;
+  inset-block-start: 8px;
+  inset-inline-end: 12px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+}

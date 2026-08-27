@@ -89,6 +89,13 @@ export class SupabaseAuthRepository implements IAuthRepository {
     };
   }
 
+  async restoreSession(): Promise<AppUser | null> {
+    const { data, error } = await this.client.auth.getSession();
+    if (error) throw error;
+    if (!data.session?.user) return null;
+    return mapSupabaseUser(data.session.user);
+  }
+
   async revokeSession(_sessionId: string): Promise<void> {
     // NOTE (Phase 1 follow-up, AUTH-004): per-device session revocation needs
     // a dedicated `user_sessions` table + Edge Function, since Supabase Auth's
