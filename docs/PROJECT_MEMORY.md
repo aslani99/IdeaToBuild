@@ -52,6 +52,14 @@ Phase 0 (بنیاد) → Phase 1 (Windows Desktop) → Phase 2 (Web) → Phase 3
   2. تست دستی UI (`pnpm tauri dev` → ساخت/جابه‌جایی Workspace، ساخت Category/Tag، ساخت/حذف/جابه‌جایی/کپی Idea با تقویم بالای صفحه).
   3. سپس ادامه‌ی Phase 3: محتوای غنی (rich content editor)، زیروظیفه، نقطه‌عطف، پیوست فایل، نماهای متعدد (Board/Calendar/Gantt/Graph)، و یک widget واقعی تقویم شمسی/قمری (فعلاً فقط input بومی + برچسب) — همه‌ی این‌ها هنوز باقی مانده‌اند.
 
+## این نشست چه‌کاری انجام داد (رفع باگ بحرانی — infinite recursion در RLS)
+
+- کاربر خطای HTTP 500 روی کوئری `workspaces` گزارش داد؛ با آپلود فایل CSV لاگ‌های Supabase، علت دقیق پیدا شد: `error 42P17 — infinite recursion detected in policy for relation "workspace_members"`.
+- علت: سیاست‌های RLS جدول `workspace_members` (از migration فاز ۲، AD-008) برای چک عضویت، خودشون از همون جدول `workspace_members` کوئری می‌گرفتن — این باعث می‌شد RLS دوباره روی همون کوئری فعال بشه، و بی‌نهایت تکرار بشه.
+- رفع شد: `supabase/migrations/0004_fix_workspace_members_rls_recursion.sql` — سه تابع `security definer` (`is_workspace_member`, `is_workspace_owner_or_admin`, `is_workspace_owner`) که RLS رو داخلی دور می‌زنن، و همه‌ی سیاست‌های `workspace_members`/`workspaces`/`categories`/`tags`/`ideas` بازنویسی شدن تا از این توابع استفاده کنن.
+- **هنوز روی Supabase واقعی اجرا نشده** — کاربر باید این migration رو هم مثل بقیه دستی اجرا کنه.
+- درس مهم برای آینده: هر policy جدیدی که می‌خواد عضویت/نقش رو چک کنه، باید از این سه تابع استفاده کنه، نه یک subquery مستقیم و جدید روی `workspace_members` — تا این باگ دوباره تکرار نشه.
+
 ## این نشست چه‌کاری انجام داد (رفتار مهمان + ذخیره‌سازی محلی + Sync، AD-010)
 
 - طبق درخواست دقیق مالک پروژه، رفتار مهمان اصلاح شد: مهمان الان کل داشبورد (Workspace/دسته‌بندی/برچسب/ایده) رو می‌بینه؛ فقط لحظه‌ای که بخواد چیزی بسازه/ذخیره کنه، `requireAuth()` کادر ثبت‌نام/ورود (`AuthRequiredModal`) رو باز می‌کنه — دقیقاً طبق بخش ۲۲ سند اصلی.

@@ -106,3 +106,10 @@
 - فقط Idea به مدل local-first منتقل شده؛ Workspace/Category/Tag هنوز مستقیم Supabase-only هستن.
 - SyncEngine بدون retry/backoff پیشرفته — رکورد fail‌شده تا trigger بعدی صبر می‌کنه.
 - امنیت رمزنگاری محلی محدودیت مستندشده داره (AD-010) — محافظت در برابر باز کردن فایل، نه در برابر یک session سیستم‌عامل کاملاً compromised.
+
+## [Unreleased] — Critical RLS bugfix (2026-08-27)
+
+### Fixed
+- **`workspaces`/`workspace_members` queries failed with HTTP 500 for every authenticated user.** Root cause found via Supabase Postgres logs: `error 42P17 — infinite recursion detected in policy for relation "workspace_members"`. The RLS policies on `workspace_members` (added in the Phase 2 migration, AD-008) checked membership by querying `workspace_members` itself inside an `EXISTS` subquery — evaluating that subquery re-triggers RLS on the same table, which re-runs the same policy, forever.
+  - Fix: `supabase/migrations/0004_fix_workspace_members_rls_recursion.sql` adds three `SECURITY DEFINER` helper functions (`is_workspace_member`, `is_workspace_owner_or_admin`, `is_workspace_owner`) that bypass RLS internally, and rewrites every policy on `workspace_members`, `workspaces`, `categories`, `tags`, and `ideas` to call these functions instead of writing an inline subquery against `workspace_members`.
+  - **Must be run on the live Supabase project** (SQL Editor) — not yet applied as of this session.
